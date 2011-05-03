@@ -106,7 +106,7 @@ context "Resque" do
     assert Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
     assert_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
 
-    assert Resque::Job.create(:jobs, 'SomeMethodJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeMethodWithoutArgsJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert_not_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
 
@@ -115,20 +115,36 @@ context "Resque" do
     assert_not_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
   end
 
-  test "can put jobs on a queue by way of a method" do
+  test "can put jobs on a queue by way of a method with no args" do
     assert_equal 0, Resque.size(:method)
-    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
-    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodWithoutArgsJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodWithoutArgsJob, 20, '/tmp')
 
     job = Resque.reserve(:method)
 
     assert_kind_of Resque::Job, job
-    assert_equal SomeMethodJob, job.payload_class
+    assert_equal SomeMethodWithoutArgsJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
 
     assert Resque.reserve(:method)
     assert_equal nil, Resque.reserve(:method)
+  end
+  
+  test "can put jobs on a queue by way of a method with args" do
+    assert_equal 0, Resque.size(:method_20_test)
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test')
+
+    job = Resque.reserve(:method_20_test)
+
+    assert_kind_of Resque::Job, job
+    assert_equal SomeMethodWithArgsJob, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal 'test', job.args[1]
+
+    assert Resque.reserve(:method_20_test)
+    assert_equal nil, Resque.reserve(:method_20_test)
   end
 
   test "needs to infer a queue with enqueue" do

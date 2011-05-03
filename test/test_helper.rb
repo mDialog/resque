@@ -93,9 +93,15 @@ class SomeIvarJob < SomeJob
   @queue = :ivar
 end
 
-class SomeMethodJob < SomeJob
+class SomeMethodWithoutArgsJob < SomeJob
   def self.queue
     :method
+  end
+end
+
+class SomeMethodWithArgsJob < SomeJob
+  def self.queue(args)
+    "method_#{ args.collect { |a| a.to_s }.join("_") }"
   end
 end
 
