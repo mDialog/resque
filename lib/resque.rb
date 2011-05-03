@@ -249,7 +249,7 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def dequeue(klass, *args)
-    Job.destroy(queue_from_class(klass), klass, *args)
+    Job.destroy(queue_from_class(klass, args), klass, *args)
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a
@@ -280,9 +280,9 @@ module Resque
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
   # If given klass is nil this method will raise a `Resque::NoClassError`
-  def validate(klass, queue = nil)
-    queue ||= queue_from_class(klass)
-
+  def validate(klass, args=[], queue = nil)
+    queue ||= queue_from_class(klass, args)
+    
     if !queue
       raise NoQueueError.new("Jobs must be placed onto a queue.")
     end

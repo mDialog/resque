@@ -40,7 +40,7 @@ module Resque
     #
     # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
-      Resque.validate(klass, queue)
+      Resque.validate(klass, args, queue)
 
       if Resque.inline?
         constantize(klass).perform(*decode(encode(args)))

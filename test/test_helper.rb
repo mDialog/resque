@@ -101,7 +101,7 @@ end
 
 class SomeMethodWithArgsJob < SomeJob
   def self.queue(args)
-    "method_#{ args.collect { |a| a.to_s }.join("_") }"
+    "method_#{ args[0..-2].collect { |a| a.to_s }.join("_") }"
   end
 end
 

@@ -21,7 +21,7 @@ context "Resque" do
     new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
     Resque.redis = new_namespace
     assert_equal new_namespace, Resque.redis
-
+  
     Resque.redis = 'localhost:9736/namespace'
   end
 
@@ -133,8 +133,8 @@ context "Resque" do
   
   test "can put jobs on a queue by way of a method with args" do
     assert_equal 0, Resque.size(:method_20_test)
-    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test')
-    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg3')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg3')
 
     job = Resque.reserve(:method_20_test)
 
@@ -147,6 +147,18 @@ context "Resque" do
     assert_equal nil, Resque.reserve(:method_20_test)
   end
 
+  test "can remove jobs from a queue by way of a method with args" do
+    assert_equal 0, Resque.size(:method_20_test)
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg3')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg4')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg3')
+    assert Resque.enqueue(SomeMethodWithArgsJob, 20, 'test', 'arg4')
+    assert_equal 4, Resque.size(:method_20_test)
+
+    assert Resque.dequeue(SomeMethodWithArgsJob, 20, 'test', 'arg3')
+    assert_equal 2, Resque.size(:method_20_test)
+  end
+
   test "needs to infer a queue with enqueue" do
     assert_raises Resque::NoQueueError do
       Resque.enqueue(SomeJob, 20, '/tmp')
@@ -154,6 +166,8 @@ context "Resque" do
   end
 
   test "validates job for queue presence" do
+    assert_nil Resque.validate(SomeMethodWithArgsJob, [20, 'test', 'arg3'])
+    
     assert_raises Resque::NoQueueError do
       Resque.validate(SomeJob)
     end
